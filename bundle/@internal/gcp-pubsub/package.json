@@ -1,0 +1,34 @@
+{
+  "name": "@internal/gcp-pubsub",
+  "version": "0.6.2",
+  "description": "internal Google Cloud PubSub utilities",
+  "keywords": [
+    "pubsub",
+    "gcp"
+  ],
+  "main": "dist/index.js",
+  "directories": {
+    "lib": "src",
+    "test": "test"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@google-cloud/pubsub": "4.0.6",
+    "@nestjs/common": ">=9.3.8",
+    "@nestjs/microservices": ">=9.3.8",
+    "@internal/common": "^0.6.2",
+    "rxjs": "7.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/testing": ">=9.3.8"
+  }
+}

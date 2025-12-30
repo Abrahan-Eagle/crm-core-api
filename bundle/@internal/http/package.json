@@ -1,0 +1,42 @@
+{
+  "name": "@internal/http",
+  "version": "0.6.2",
+  "description": "internal http utilities",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "http",
+    "middlewares",
+    "decorators",
+    "dtos"
+  ],
+  "directories": {
+    "lib": "src",
+    "test": "test"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.18",
+    "@types/jest": "29.5.5",
+    "@types/node": "20.8.0",
+    "jest": "29.7.0",
+    "ts-node": "10.9.1"
+  },
+  "dependencies": {
+    "@nestjs/common": ">=9.3.8",
+    "@internal/common": "^0.6.2",
+    "rxjs": "7.8.1"
+  },
+  "peerDependencies": {
+    "express": "4.x"
+  }
+}

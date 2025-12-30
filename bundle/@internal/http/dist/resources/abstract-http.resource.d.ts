@@ -1,0 +1,30 @@
+import { DomainError, MessageDispatcher, Nullable } from '@internal/common';
+import { Logger } from '@nestjs/common';
+import type { Request, Response } from 'express';
+import { Observable } from 'rxjs';
+import { AuthContextStorage } from '../context-storages';
+import { HttpErrorResponse } from '../dtos';
+export declare abstract class AbstractHttpResource {
+    protected readonly messageDispatcher: MessageDispatcher;
+    protected readonly authContext: AuthContextStorage;
+    protected readonly logger: Logger;
+    constructor(messageDispatcher: MessageDispatcher, authContext: AuthContextStorage);
+    abstract handle(req: Request, res: Response, ...args: any[]): Observable<Response>;
+    protected handleError(req: Request, res: Response, error: Error): Response;
+    protected ok<T>(res: Response, body: T): Response<T>;
+    protected created<T>(res: Response, body: T): Response<T>;
+    protected noContent(res: Response): Response<void>;
+    protected notModified(res: Response): Response<void>;
+    protected unauthorized(req: Request, res: Response, error: DomainError): Response<HttpErrorResponse>;
+    protected forbidden(req: Request, res: Response, error: DomainError): Response<HttpErrorResponse>;
+    protected notFound(req: Request, res: Response, error: DomainError): Response<HttpErrorResponse>;
+    protected conflict(req: Request, res: Response, error: DomainError): Response<HttpErrorResponse>;
+    protected gone(req: Request, res: Response): Response<HttpErrorResponse>;
+    protected tooManyRequests(req: Request, res: Response): Response<HttpErrorResponse>;
+    protected badGateway(req: Request, res: Response): Response<HttpErrorResponse>;
+    protected serviceUnavailable(req: Request, res: Response): Response<HttpErrorResponse>;
+    protected internalServerError(req: Request, res: Response, error?: DomainError): Response<HttpErrorResponse>;
+    protected badRequest(req: Request, res: Response, error: DomainError): Response<HttpErrorResponse>;
+    protected getRequestId(req: Request): string;
+    protected getCurrentUserId(): Nullable<string>;
+}

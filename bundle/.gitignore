@@ -1,0 +1,2 @@
+# To prevent ignoring the dist directories
+!dist

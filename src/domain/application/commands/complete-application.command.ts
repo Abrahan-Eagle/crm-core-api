@@ -1,0 +1,15 @@
+import { OptionalValue, Result } from '@internal/common';
+
+import { DomainErrorCode, Id } from '@/domain/common';
+
+export class CompleteApplicationCommand {
+  private constructor(public readonly applicationId: Id) {}
+
+  static create(applicationId: OptionalValue<string>): Result<CompleteApplicationCommand> {
+    return Id.create(
+      applicationId,
+      () => DomainErrorCode.APPLICATION_ID_EMPTY,
+      () => DomainErrorCode.APPLICATION_ID_INVALID,
+    ).map((id) => new CompleteApplicationCommand(id));
+  }
+}

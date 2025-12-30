@@ -1,0 +1,9 @@
+{
+  "extends": ["./bundle/@internal/common/config/eslint"]
+  // "prettier/prettier": [
+  //   "error",
+  //   {
+  //     "endOfLine": "auto"
+  //   }
+  // ]
+}

@@ -1,0 +1,33 @@
+import { Nullable, OptionalValue } from './custom-types';
+import { Result } from './result';
+export declare class Optional<T> {
+    readonly valueTrace: string;
+    private readonly value;
+    private readonly invalidTypes;
+    private readonly allowedInvalidTypes;
+    private constructor();
+    traced<U>(value: U, ...path: (string | number)[]): Optional<U>;
+    static of<T>(value: T): Optional<T>;
+    static ofNullable<T>(value: Nullable<T>): Optional<T>;
+    static ofUndefinable<T>(value: OptionalValue<T>): Optional<NonNullable<T>>;
+    static empty<T>(): Optional<T>;
+    toString(): string;
+    isPresent(): boolean;
+    validate(mapError: (value: OptionalValue<T>) => Result<T>): Result<T>;
+    ifPresent(action: (value: T) => void): void;
+    ifPresentOrElse<R, U>(action: (value: T) => R, emptyAction: () => U): R | U;
+    validateIfPresent<U>(action: (value: T) => Result<U>): Result<U | undefined | null>;
+    orElse<U extends T | undefined>(other: U): U;
+    orElseGet(supplier: () => T): T;
+    orElseThrow<X extends Error>(error: X): T;
+    getOrThrow(): T;
+    filter<S extends T = T>(predicate: (value: T) => boolean): Optional<S>;
+    map<U>(mapper: (value: T, optional: Optional<T>) => U): Optional<U>;
+    toResult(): Result<OptionalValue<T>>;
+    replaceIfEmpty(value: T): Optional<T>;
+    getFromObject<R extends keyof T>(key: R): Optional<NonNullable<T[R]>>;
+    getFromObjectOrThrow<R extends keyof T>(key: R): NonNullable<T[R]>;
+    private mapToOptional;
+    flatMap<U>(mapper: (value: T) => U): U | Optional<T>;
+    private isTypeInvalid;
+}

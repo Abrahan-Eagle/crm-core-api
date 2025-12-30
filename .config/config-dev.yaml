@@ -1,0 +1,35 @@
+server:
+  port: 8080
+  contextPath: /core-service
+  allowedOrigins: '*'
+app:
+  name: CRM - Core Service
+  author: Business Market Finders
+  logLevel: debug
+media:
+  buckets:
+    - entity: bank
+      bucket: storage.businessmarketfinders.com
+      path: banks
+      uri: https://storage.businessmarketfinders.com/banks
+    - entity: contact
+      bucket: storage.businessmarketfinders.com
+      path: contacts
+      uri: https://storage.businessmarketfinders.com/contacts
+    - entity: company
+      bucket: storage.businessmarketfinders.com
+      path: companies
+      uri: https://storage.businessmarketfinders.com/companies
+    - entity: application
+      bucket: storage.businessmarketfinders.com
+      path: applications
+      uri: https://storage.businessmarketfinders.com/applications
+tenants:
+  business_market_finders:
+    - email: deals@businessmarketfinders.com
+  loanaza:
+    - email: submissions@loanaza.com
+  la_prestamista:
+    - email: submissions@laprestamista.us
+  business_loan_&_capital:
+    - email: submissions@businessloanandcapital.com

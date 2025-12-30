@@ -1,0 +1,5 @@
+{
+  "extends": [
+    "./bundle/@internal/common/config/commitlint.json"
+  ]
+}

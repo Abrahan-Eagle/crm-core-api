@@ -1,0 +1,10 @@
+{
+  "extends": ["./@internal/common/config/typedoc.json"],
+  "name": "CRM Core Service",
+  "entryPoints": ["./src/**/*.ts"],
+  "entryPointStrategy": "resolve",
+  "excludeExternals": true,
+  "exclude": ["./src/**/index.ts"],
+  "cleanOutputDir": true,
+  "out": "./docs/pages"
+}

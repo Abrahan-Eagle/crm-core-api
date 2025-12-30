@@ -1,0 +1,54 @@
+import { DomainErrorMapper, MapErrorFunction, NullishValuesFrom, OptionalValue } from './custom-types';
+import { Optional } from './optional';
+import { Result } from './result';
+type AfterOrBeforeDateOptions = {
+    inclusive?: boolean;
+    checkTime?: boolean;
+};
+export declare class Validator<T> extends Result<T> {
+    private readonly errorMapper;
+    protected constructor(error?: Error, value?: T, errorMapper?: DomainErrorMapper);
+    static of<T>(value: Optional<T>, errorMapper?: DomainErrorMapper): Validator<OptionalValue<T>>;
+    static of<T>(value: T | Result<T>, errorMapper?: DomainErrorMapper): Validator<T>;
+    private static fromResult;
+    private mapErrorWrapper;
+    isPresent(): boolean;
+    map<R>(mapper: (value: T) => R): Validator<R>;
+    mapIfPresent<R>(mapper: (value: NonNullable<T>) => R): Validator<R | NullishValuesFrom<T>>;
+    mapIfAbsent<R>(mapper: () => R): Validator<R | NonNullable<T>>;
+    orNull(): Validator<null | NonNullable<T>>;
+    validate<U = T, R = U | NullishValuesFrom<T>>(predicate: (value: NonNullable<T>) => boolean, mapError: MapErrorFunction<T>): Validator<R>;
+    required(mapError: MapErrorFunction<T>): Validator<NonNullable<T>>;
+    string(mapError: MapErrorFunction<T>): Validator<string | Extract<T, OptionalValue<never>>>;
+    objectId(mapError: MapErrorFunction<T>): Validator<string | Extract<T, OptionalValue<never>> | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>>>;
+    uuid(mapError: MapErrorFunction<T>): Validator<string | Extract<T, OptionalValue<never>> | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>>>;
+    numericString(mapError: MapErrorFunction<T>): Validator<string | Extract<T, OptionalValue<never>> | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>>>;
+    countryCode2(mapError: MapErrorFunction<T>): Validator<string | Extract<T, OptionalValue<never>> | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>>>;
+    number(mapError: MapErrorFunction<T>): Validator<number | Extract<T, OptionalValue<never>> | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>>>;
+    minLength(minLength: number, mapError: MapErrorFunction<T>): Validator<T | Extract<T, OptionalValue<never>>>;
+    maxLength(maxLength: number, mapError: MapErrorFunction<T>): Validator<T | Extract<T, OptionalValue<never>>>;
+    length(length: number, mapError: MapErrorFunction<T>): Validator<T | Extract<T, OptionalValue<never>>>;
+    min(min: number, mapError: MapErrorFunction<T>): Validator<number | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>> | Extract<Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>>, OptionalValue<never>>>;
+    range(min: number, max: number, mapError: MapErrorFunction<T>): Validator<number | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>> | Extract<Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>>, OptionalValue<never>>>;
+    max(max: number, mapError: MapErrorFunction<T>): Validator<number | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>> | Extract<Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>>, OptionalValue<never>>>;
+    regex(regex: RegExp, mapError: MapErrorFunction<T>): Validator<string | Extract<T, OptionalValue<never>> | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>>>;
+    date(mapError: MapErrorFunction<T>): Validator<Extract<T, OptionalValue<never>> | Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>> | Date>;
+    time(mapError: MapErrorFunction<T>, validPatterns?: string[]): Validator<T | Extract<T, OptionalValue<never>>>;
+    datetime(mapError: MapErrorFunction<T>): Validator<Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>> | Date>;
+    afterDate(date: Date, mapError: MapErrorFunction<T>, options?: AfterOrBeforeDateOptions): Validator<Extract<T, OptionalValue<never>> | Date>;
+    beforeDate(date: Date, mapError: MapErrorFunction<T>, options?: AfterOrBeforeDateOptions): Validator<Extract<T, OptionalValue<never>> | Date>;
+    url(mapError: MapErrorFunction<T>): Validator<string | Extract<T, OptionalValue<never>>>;
+    email(mapError: MapErrorFunction<T>): Validator<string | Extract<T, OptionalValue<never>>>;
+    phone(mapError: MapErrorFunction<T>): Validator<string | Extract<T, OptionalValue<never>>>;
+    enum<Enum extends object, EnumValue extends Enum[keyof Enum]>(enumObject: Enum, mapError: MapErrorFunction<T>): Validator<Extract<T, OptionalValue<never>> | EnumValue>;
+    boolean(mapError: MapErrorFunction<T>): Validator<boolean | Extract<T, OptionalValue<never>>>;
+    array<ArrayValue = T extends ArrayLike<infer U> ? U[] : never>(mapError: MapErrorFunction<T>): Validator<Extract<T, OptionalValue<never>> | ArrayValue>;
+    notEmpty(mapError: MapErrorFunction<T>, emptyLength?: number): Validator<T | Extract<T, OptionalValue<never>>>;
+    unique<Value = T extends ArrayLike<infer U> ? U : never, ArrayValue = T extends ArrayLike<infer U> ? U[] : never>(predicate: (value: Value) => any, mapError: MapErrorFunction<T>, options?: {
+        ignoreNullishValues?: boolean;
+    }): Validator<Extract<Extract<T, OptionalValue<never>>, OptionalValue<never>> | ArrayValue | Extract<T extends ArrayLike<infer U> ? U[] : never, OptionalValue<never>>>;
+    object(mapError: MapErrorFunction<T>): Validator<Extract<T, OptionalValue<never>> | (T & object)>;
+    private hasLength;
+    private isNumber;
+}
+export {};

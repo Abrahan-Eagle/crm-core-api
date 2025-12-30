@@ -1,0 +1,1 @@
+module.exports = require('@internal/common/config/lint-staged').default

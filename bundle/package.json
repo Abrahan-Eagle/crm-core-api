@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "bundle": "node index.js"
+  },
+  "dependencies": {
+    "@internal/common": "0.6.2",
+    "@internal/gcp-pubsub": "0.6.2",
+    "@internal/http": "0.6.2",
+    "@internal/mongo": "0.6.2",
+    "@internal/rate-limit": "0.6.2"
+  }
+}
