@@ -127,13 +127,13 @@ Backend API del sistema CRM especializado en gestión de préstamos comerciales,
 - **Propósito**: Gestión de personas físicas (miembros de empresas o independientes)
 - **Validaciones**: Edad 21-99, máx 5 teléfonos/emails, máx 6 documentos
 - **Operaciones clave**: createContact, updateContact, addFile, createNote
-- **Permisos**: CREATE_CONTACT, READ_CONTACT, LIST_CONTACTS, UPDATE_CONTACT, DELETE_CONTACT
+- **Permisos**: CREATE_CONTACT, READ_CONTACT, LIST_CONTACTS, UPDATE_CONTACT, DELETE_CONTACT, ADD_CONTACT_NOTE, DELETE_CONTACT_NOTE
 
 ### Company (Empresas)
 - **Propósito**: Gestión de empresas que solicitan préstamos
 - **Validaciones**: Máx 10 miembros, máx 4 documentos por tipo
 - **Operaciones clave**: createCompany, updateCompany, addFile, createNote, transferCompany
-- **Permisos**: CREATE_COMPANY, READ_COMPANY, LIST_COMPANIES, UPDATE_COMPANY, DELETE_COMPANY, TRANSFER_COMPANY
+- **Permisos**: CREATE_COMPANY, READ_COMPANY, LIST_COMPANIES, UPDATE_COMPANY, DELETE_COMPANY, TRANSFER_COMPANY, ADD_COMPANY_NOTE, DELETE_COMPANY_NOTE
 
 ### Commission (Comisiones)
 - **Propósito**: Distribución de comisiones cuando se acepta una oferta
@@ -197,7 +197,7 @@ Backend API del sistema CRM especializado en gestión de préstamos comerciales,
 - **"all" permissions**: Ver todos los recursos (ej: LIST_APPLICATIONS)
 - **CRUD permissions**: CREATE, READ, UPDATE, DELETE por entidad
 - **Action permissions**: SEND_APPLICATION, TRANSFER_APPLICATION, etc.
-- **View Full permissions**: VIEW_FULL_SSN, VIEW_FULL_PHONE, VIEW_FULL_TAX_ID, VIEW_FULL_EMAIL
+- **View Full permissions**: VIEW_FULL_SSN, VIEW_FULL_PHONE, VIEW_FULL_TAX_ID, VIEW_FULL_EMAIL, VIEW_FULL_NOTIFICATION
 
 ### Guards y Middlewares
 - `PermissionsGuard` (Global): Valida permisos antes de ejecutar endpoint
@@ -208,24 +208,52 @@ Backend API del sistema CRM especializado en gestión de préstamos comerciales,
 ## Endpoints API Principales
 
 ### Applications
-- `GET /v1/applications`: Buscar aplicaciones
+- `GET /v1/applications`: Buscar aplicaciones (con paginación y filtros)
 - `GET /v1/applications/:id`: Obtener por ID
-- `POST /v1/applications`: Crear aplicación
+- `POST /v1/applications`: Crear aplicación (FormData: body + documents)
 - `PUT /v1/applications/:id/notifications`: Enviar a bancos
+- `GET /v1/applications/:id/notifications`: Obtener notificaciones
 - `PUT /v1/applications/:id/notifications/:nId/accept/:offerId`: Aceptar oferta
+- `PUT /v1/applications/:id/notifications/:nId/cancel/:offerId`: Cancelar oferta
+- `PUT /v1/applications/:id/notifications/:nId/update/:offerId`: Actualizar oferta
 - `PUT /v1/applications/:id/complete`: Completar aplicación
 - `PATCH /v1/applications/:id/reject`: Rechazar aplicación
+- `PUT /v1/applications/:id/substatus`: Actualizar subestado
+- `PATCH /v1/applications/:id/position/:position`: Establecer posición (1-5)
 - `DELETE /v1/applications/:id`: Eliminar aplicación
 - `PUT /v1/applications/:id/transfer-to/:userId`: Transferir aplicación
+- `GET /v1/applications/:id/recommended-banks`: Obtener bancos recomendados
+- `GET /v1/last-application-period/:companyId`: Último período válido
+
+**Drafts** (`/v1/drafts`):
+- `GET /v1/drafts`: Buscar drafts
+- `GET /v1/drafts/:id`: Obtener draft
+- `POST /v1/drafts`: Crear draft
+- `PUT /v1/drafts/:id`: Actualizar draft
+- `PUT /v1/drafts/:id/publish`: Publicar draft (convierte a Application)
+- `DELETE /v1/drafts/:id`: Eliminar draft
+- `PUT /v1/drafts/:id/transfer-to/:userId`: Transferir draft
+- **Permisos**: READ_DRAFT_APPLICATION, CREATE_DRAFT_APPLICATION, UPDATE_DRAFT_APPLICATION, PUBLISH_DRAFT_APPLICATION, DELETE_DRAFT_APPLICATION, TRANSFER_DRAFT
+
+**Webhooks** (llamados por sistemas externos, no por frontend):
+- `PUT /v1/applications/:id/send-to-banks`: Webhook para envío
+- `PUT /v1/webhooks/applications/notification/reject`: Webhook de rechazo
+- `POST /v1/webhooks/affiliate`: Webhook de affiliate
+- `PUT /v1/webhooks/affiliate/consolidate`: Webhook de consolidación
+- `GET /v1/campaigns/:campaign_id/send-next`: Webhook para enviar siguiente batch
+- `POST /v1/campaigns/notification`: Webhook de notificación de campaña
+- `POST /v1/campaigns/stop-all`: Webhook para detener todas las campañas
 
 ### Contacts
 - `GET /v1/contacts`: Buscar contactos
 - `GET /v1/contacts/:id`: Obtener contacto
+- `GET /v1/contacts/ssn/:ssn`: Buscar por SSN
 - `POST /v1/contacts`: Crear contacto
 - `PUT /v1/contacts/:id`: Actualizar contacto
 - `DELETE /v1/contacts/:id`: Eliminar contacto
-- `POST /v1/contacts/:id/files`: Agregar archivo
+- `POST /v1/contacts/:id/files`: Agregar archivo (FormData)
 - `POST /v1/contacts/:id/notes`: Crear nota
+- `PUT /v1/contacts/:id/transfer-to/:userId`: Transferir contacto
 
 ### Companies
 - `GET /v1/companies`: Buscar companies
@@ -233,8 +261,9 @@ Backend API del sistema CRM especializado en gestión de préstamos comerciales,
 - `POST /v1/companies`: Crear company
 - `PUT /v1/companies/:id`: Actualizar company
 - `DELETE /v1/companies/:id`: Eliminar company
-- `POST /v1/companies/:id/files`: Agregar archivo
+- `POST /v1/companies/:id/files`: Agregar archivo (FormData)
 - `POST /v1/companies/:id/notes`: Crear nota
+- `PUT /v1/companies/:id/transfer-to/:userId`: Transferir company
 
 ### Banks
 - `GET /v1/banks`: Buscar bancos
@@ -242,6 +271,8 @@ Backend API del sistema CRM especializado en gestión de préstamos comerciales,
 - `POST /v1/banks`: Crear banco
 - `PUT /v1/banks/:id`: Actualizar banco
 - `DELETE /v1/banks/:id`: Eliminar banco
+- `GET /v1/banks/:id/offers`: Obtener ofertas
+- `PUT /v1/banks/:id/blacklist`: Agregar a blacklist
 - `POST /v1/banks/send-email`: Enviar email a bancos
 
 ### Commissions
@@ -259,8 +290,9 @@ Backend API del sistema CRM especializado en gestión de préstamos comerciales,
 ### Leads
 - `GET /v1/leads`: Buscar lead groups
 - `GET /v1/leads/prospects`: Buscar prospects
-- `POST /v1/leads`: Crear lead group (desde archivo)
+- `POST /v1/leads`: Crear lead group (desde archivo CSV/Excel - FormData)
 - `POST /v1/leads/prospects/:id/notes`: Agregar nota a prospect
+- `PUT /v1/leads/:id/transfer-to/:userId`: Transferir lead group
 
 ### Users
 - `GET /v1/users`: Buscar usuarios
@@ -268,12 +300,44 @@ Backend API del sistema CRM especializado en gestión de préstamos comerciales,
 - `PUT /v1/users/:id`: Actualizar usuario
 - `POST /v1/users/make-a-call`: Realizar llamada
 
+## Comunicación con Frontend
+
+### Formato de Requests
+- **JSON**: Para operaciones CRUD normales (GET, POST, PUT, PATCH, DELETE)
+- **FormData**: Para requests con archivos (POST /v1/applications, POST /v1/contacts/:id/files, etc.)
+  - Estructura esperada: `body` (JSON string) + `documents` (files array)
+  - Frontend envía FormData con esta estructura
+
+### Headers Esperados
+- `Authorization`: JWT token de Auth0 (requerido para todas las rutas excepto públicas)
+- `X-Tenant`: Tenant ID (inyectado por frontend HttpService)
+- `Accept-Language`: Idioma preferido (inyectado por frontend HttpService)
+- `Content-Type`: `application/json` (JSON) o `multipart/form-data` (FormData)
+
+### Formato de Responses
+- **Success**: Objeto JSON con datos
+- **Error**: Objeto JSON con `statusCode`, `message`, `error`
+- **Paginación**: `PaginatedResponse<T>` con `data`, `total`, `page`, `limit`
+
+### Validaciones Coordinadas
+- **Frontend**: Validaciones de UX (feedback inmediato al usuario)
+- **Backend**: Validaciones de seguridad (nunca confiar solo en frontend)
+- Algunas validaciones son redundantes por seguridad (defense in depth)
+- Backend siempre valida permisos, estados, y reglas de negocio
+
+### Domain Events y Side Effects
+- Backend usa Domain Events para desacoplar side effects
+- Ejemplo: Al aceptar oferta → `ApplicationAcceptedEvent` → Event Handler crea Commission automáticamente
+- Frontend no necesita hacer requests adicionales, el backend maneja automáticamente
+- Frontend recibe notificaciones en tiempo real vía NotificationAPI cuando hay cambios importantes
+
 ## Integraciones Externas
 
 ### Auth0
 - Autenticación y autorización
-- Permisos en JWT token
+- Permisos en JWT token (claim `permissions`)
 - Middleware valida tokens automáticamente
+- Frontend usa Auth0 SDK para autenticación
 
 ### MongoDB
 - Base de datos principal
@@ -311,17 +375,21 @@ Backend API del sistema CRM especializado en gestión de préstamos comerciales,
 - Bank Statements: 4 períodos requeridos (calculados dinámicamente)
 - Solo READY_TO_SEND puede enviarse a bancos
 - Debe tener posición establecida (1-5) antes de enviar
-- Al aceptar oferta: se crea Commission automáticamente (DRAFT)
+- Mensaje a bancos: 15-800 caracteres (validado en backend)
+- Al aceptar oferta: **Domain Event** `ApplicationAcceptedEvent` se dispara → Event Handler crea Commission automáticamente (DRAFT)
+- No se permiten duplicados (misma company, mismo período)
 
 ### Contacts
 - Edad: 21-99 años
+- SSN: 9 dígitos (SSN o ITIN) - validación en backend
 - Máximo 5 teléfonos
 - Máximo 5 emails
 - Máximo 6 documentos totales
 - Máximo 4 documentos por tipo
 
 ### Companies
-- Máximo 10 miembros
+- Nombre: 2-100 caracteres (validación en backend)
+- Máximo 10 miembros (mínimo 1)
 - Máximo 4 documentos por tipo
 - Tamaño máximo de archivo: 10MB
 
@@ -387,13 +455,41 @@ STOPPED ↔ STARTED
 ## Consideraciones Importantes
 
 1. **Permisos**: Siempre verificar permisos antes de ejecutar operaciones
+   - `PermissionsGuard` valida permisos globalmente
+   - Decorator `@RequiredPermissions()` especifica permisos requeridos
+   - Frontend también valida permisos para UX, pero backend siempre valida (seguridad)
 2. **Archivos**: Usar FormData para requests con archivos, almacenar en S3
+   - Frontend envía FormData con estructura: `body` (JSON string) + `documents` (files array)
+   - Backend parsea FormData, valida archivos, y almacena en S3
 3. **Estados**: Respetar transiciones de estado (no saltar estados inválidos)
+   - Domain Entities validan transiciones de estado
+   - Backend rechaza transiciones inválidas
+   - Frontend debe reflejar estados correctamente
 4. **Events**: Usar Domain Events para side effects (ej: crear Commission al aceptar oferta)
+   - Domain Events desacoplan side effects
+   - Event Handlers ejecutan acciones automáticamente
+   - Frontend no necesita hacer requests adicionales
 5. **Transferencias**: Las entidades pueden transferirse entre usuarios
+   - Requiere permiso `TRANSFER_*` específico
+   - Backend valida que usuario destino existe
 6. **Own vs All**: Diferenciar entre permisos "own" y "all" en queries
+   - Queries filtran resultados según permisos
+   - "own" permissions: solo recursos del usuario actual
+   - "all" permissions: todos los recursos
 7. **Validaciones**: Validar reglas de negocio en Command Handlers
+   - Frontend valida para UX (feedback inmediato)
+   - Backend valida para seguridad (nunca confiar solo en frontend)
+   - Algunas validaciones son redundantes por seguridad
 8. **Mappers**: Usar mappers para convertir entre Domain Entities y MongoDB Documents
+   - Domain Entities son independientes de MongoDB
+   - Mappers convierten entre capas
+9. **Multi-tenancy**: Al crear Application, se clona para todos los tenants
+   - Frontend no necesita manejar esto explícitamente
+   - Backend maneja multi-tenancy automáticamente
+10. **Webhooks**: Algunos endpoints son webhooks (llamados por sistemas externos)
+    - No son llamados por el frontend
+    - Tienen autenticación diferente (WebhookAuthMiddleware)
+    - Rutas definidas en AppModule.WEBHOOK_ROUTES
 
 ## Contexto de Negocio
 

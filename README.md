@@ -1,5 +1,7 @@
 # CRM Core API - Análisis Exhaustivo del Backend
 
+> **Nota**: Este es el README del **Backend (NestJS)**. Para documentación del **Frontend (Angular)**, ver [CRM Web Application README](../crm-web-app/README.md).
+
 ## Índice
 1. [Análisis Arquitectónico y Estructural](#1-análisis-arquitectónico-y-estructural)
 2. [Análisis de Lógica de Negocio por Módulo](#2-análisis-de-lógica-de-negocio-por-módulo)
@@ -7,12 +9,14 @@
 4. [Análisis de Servicios y Endpoints](#4-análisis-de-servicios-y-endpoints)
 5. [Integraciones Externas](#5-integraciones-externas)
 6. [Sistema de Autenticación y Autorización](#6-sistema-de-autenticación-y-autorización)
-7. [Patrones y Decisiones de Diseño](#7-patrones-y-decisiones-de-diseño)
+7. [Análisis Completo de Arquitectura](#7-análisis-completo-de-arquitectura)
 8. [Casos de Uso de Negocio](#8-casos-de-uso-de-negocio)
 9. [Diagrama de Entidades y Relaciones](#9-diagrama-de-entidades-y-relaciones)
 10. [Análisis de Estados y Workflows](#10-análisis-de-estados-y-workflows)
 11. [Flujos Completos de Procesos - Trazabilidad Detallada](#11-flujos-completos-de-procesos---trazabilidad-detallada)
 12. [Resumen Ejecutivo](#12-resumen-ejecutivo)
+13. [Análisis Profundo de Todos los Módulos](#13-análisis-profundo-de-todos-los-módulos)
+14. [Comunicación con Frontend](#14-comunicación-con-frontend)
 
 ---
 
@@ -324,6 +328,9 @@ Gestiona el ciclo completo de solicitudes de préstamo comercial, desde la creac
 1. **Crear Aplicación**:
    - Monto: $1,000 - $20,000,000 (solo enteros)
    - Bank Statements: 4 períodos requeridos
+   - MTD Statements: 1 período opcional
+   - Credit Card Statements: 3 períodos opcionales
+   - Additional Statements: Máximo 5 opcionales
    - Períodos calculados dinámicamente basados en última aplicación de company
    - Si no hay aplicaciones previas, usa últimos 4 períodos desde hoy
 
@@ -2119,6 +2126,12 @@ stateDiagram-v2
 ---
 
 ## 11. FLUJOS COMPLETOS DE PROCESOS - TRAZABILIDAD DETALLADA
+
+**Nota**: El frontend documenta estos mismos flujos desde perspectiva de usuario e interacciones de UI. Ver [Frontend README - Sección 12](../crm-web-app/README.md#12-flujos-completos-de-procesos---trazabilidad-detallada) para detalles de:
+- Interacciones de usuario
+- Actualizaciones de UI
+- Manejo de formularios multi-paso
+- Gestión de estado local con Signals
 
 ### 11.1 FLUJO COMPLETO: Lead → Contact → Company → Application
 
@@ -4549,6 +4562,165 @@ flowchart TD
 5. CloudTalk inicia llamada
 6. Backend registra CallLog
 7. **Resultado**: Llamada iniciada, registrada en historial
+
+---
+
+## 14. COMUNICACIÓN CON FRONTEND
+
+### 14.1 Formato de Requests Esperados
+
+**Requests HTTP**:
+- **JSON**: Para operaciones CRUD normales (GET, POST, PUT, PATCH, DELETE)
+- **FormData**: Para requests con archivos (POST /v1/applications, POST /v1/contacts/:id/files, etc.)
+  - Estructura esperada: `body` (JSON string) + `documents` (files array)
+  - Frontend envía FormData con esta estructura
+
+**Headers Esperados**:
+- `Authorization`: JWT token de Auth0 (requerido para todas las rutas excepto públicas)
+- `X-Tenant`: Tenant ID (inyectado por frontend HttpService)
+- `Accept-Language`: Idioma preferido (inyectado por frontend HttpService)
+- `Content-Type`: `application/json` (JSON) o `multipart/form-data` (FormData)
+
+### 14.2 Formato de Responses
+
+**Success Response**:
+```json
+{
+  "id": "...",
+  "data": { ... },
+  // ... otros campos
+}
+```
+
+**Error Response**:
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "error": "Bad Request"
+}
+```
+
+**Paginated Response**:
+```json
+{
+  "data": [...],
+  "total": 100,
+  "page": 1,
+  "limit": 10
+}
+```
+
+### 14.3 Sincronización de Estados
+
+**Flujo de Sincronización**:
+1. Frontend envía request
+2. Backend valida y procesa
+3. Backend actualiza estado en MongoDB
+4. Domain Events disparan side effects si es necesario
+5. Backend retorna respuesta con estado actualizado
+6. Frontend actualiza Signals basado en respuesta
+7. NotificationAPI envía notificaciones en tiempo real (si hay cambios importantes)
+
+**Ejemplo - Aceptar Oferta**:
+1. Frontend: `PUT /v1/applications/:id/notifications/:nId/accept/:offerId`
+2. Backend: Valida, actualiza Offer.status → ACCEPTED
+3. Backend: Actualiza BankNotification.status → ACCEPTED
+4. Backend: Actualiza Application.status → OFFER_ACCEPTED
+5. Backend: Dispara `ApplicationAcceptedEvent` (Domain Event)
+6. Backend: Event Handler crea Commission automáticamente (DRAFT)
+7. Backend: Retorna respuesta con Application actualizada
+8. Frontend: Actualiza Signals, muestra toast
+9. NotificationAPI: Envía notificación en tiempo real
+
+### 14.4 Validaciones Coordinadas
+
+**Frontend (UX)**:
+- Validaciones inmediatas para feedback al usuario
+- Validación de formularios antes de enviar
+- Validación de archivos (tamaño, tipo, duplicados)
+- Validación de estados (no permitir acciones inválidas)
+
+**Backend (Seguridad)**:
+- Validaciones de seguridad (nunca confiar solo en frontend)
+- Validaciones de reglas de negocio en Command Handlers
+- Validaciones de permisos en PermissionsGuard
+- Validaciones de estados y transiciones en Domain Entities
+
+**Validaciones Redundantes** (defense in depth):
+- Monto: Frontend valida $1K-$20M, Backend también valida
+- Edad: Frontend valida 21-99, Backend también valida
+- Documentos: Frontend valida cantidad, Backend también valida
+- Estados: Frontend previene acciones inválidas, Backend rechaza si se intenta
+
+### 14.5 Domain Events y Side Effects
+
+**Domain Events en Backend**:
+- Backend usa Domain Events para desacoplar side effects
+- Ejemplo: `ApplicationAcceptedEvent` → Crea Commission automáticamente
+- Frontend no necesita hacer requests adicionales
+
+**Eventos Principales**:
+- `ApplicationAcceptedEvent`: Se dispara al aceptar oferta → Crea Commission
+- `DraftCreatedEvent`: Se dispara al crear draft → Notificaciones
+- `ProspectCreatedEvent`: Se dispara al crear prospect → Asignación automática
+
+**Flujo Típico**:
+1. Frontend hace request (ej: aceptar oferta)
+2. Backend procesa y dispara Domain Event
+3. Event Handler ejecuta side effect (ej: crear Commission)
+4. Backend retorna respuesta exitosa
+5. Frontend actualiza UI basado en respuesta
+6. NotificationAPI notifica cambios importantes
+
+### 14.6 Multi-tenancy
+
+**Backend**:
+- Soporta multi-tenancy
+- Al crear Application, se clona para todos los tenants
+- Cada tenant tiene su propia instancia de datos
+
+**Frontend**:
+- No necesita manejar multi-tenancy explícitamente
+- Solo envía `X-Tenant` header
+- Backend maneja clonación automáticamente
+
+### 14.7 Componentes Específicos del Frontend
+
+**Frontend tiene componentes específicos** (mencionado para contexto):
+- `SendToBanksComponent`: Selección de bancos y envío
+- `BankNotificationsComponent`: Gestión de notificaciones y ofertas
+- `OffersComponent`: Gestión de ofertas (aceptar, rechazar, actualizar)
+- `CompleteApplicationComponent`: Completar aplicación
+- `RejectApplicationComponent`: Rechazar aplicación
+- `PositionSelectorComponent`: Establecer posición (1-5)
+- `UpdateStatusComponent`: Actualizar subestado
+
+**Backend**:
+- No necesita conocer estos componentes específicos
+- Solo necesita conocer los endpoints que estos componentes llaman
+- Separación de concerns: Backend no depende de detalles de UI
+
+### 14.8 Formulario Multi-Paso en Frontend
+
+**Frontend usa formulario multi-paso** (mencionado para contexto):
+- **Crear Application**: 3 pasos (Detalles, Documentos, Additional Statements)
+- **Crear Contact**: 4 pasos (Básico, Dirección, Documentos, Notas)
+- **Crear Company**: 5 pasos (Básico, Contacto, Miembros, Documentos, Notas)
+
+**Backend**:
+- No necesita conocer la estructura del formulario multi-paso
+- Solo recibe el resultado final (FormData con body + archivos)
+- Separación de concerns: Backend no depende de detalles de UI
+
+### 14.9 Referencias al Frontend README
+
+Para más detalles sobre:
+- **Arquitectura Frontend**: Ver [Frontend README - Sección 13: Análisis de Arquitectura Completa](../crm-web-app/README.md#13-análisis-de-arquitectura-completa)
+- **Componentes Reutilizables**: Ver [Frontend README - Sección 5: Análisis de Componentes Reutilizables](../crm-web-app/README.md#5-análisis-de-componentes-reutilizables)
+- **Flujos desde Perspectiva Frontend**: Ver [Frontend README - Sección 12: Flujos Completos](../crm-web-app/README.md#12-flujos-completos-de-procesos---trazabilidad-detallada)
+- **Análisis Profundo de Applications**: Ver [Frontend README - Sección 11: Análisis Profundo: Módulo Applications](../crm-web-app/README.md#11-análisis-profundo-módulo-applications)
+- **Signals y Estado Local**: Ver [Frontend README - Sección 4.3: Gestión de Estado](../crm-web-app/README.md#43-gestión-de-estado)
 
 ---
 
