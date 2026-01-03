@@ -10,9 +10,11 @@ import { OfferMapper } from './offer.mapper';
 export * from './application.mapper';
 export * from './application-file.mapper';
 export * from './application-referral.mapper';
+export * from './bank-notification.mapper';
 export * from './draft-application.mapper';
 export * from './draft-application-file.mapper';
 export * from './filled-application-file.mapper';
+export * from './offer.mapper';
 
 export const ApplicationMappers = [
   ApplicationMapper,
