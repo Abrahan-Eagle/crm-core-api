@@ -4,11 +4,13 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types", "./types"],
     "paths": {
       "@/*": ["src/*"],
       "@assets/*": ["assets/*"]
     }
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*", "test/**/*", "types/**/*"],
   "exclude": ["node_modules", "dist"]
 }

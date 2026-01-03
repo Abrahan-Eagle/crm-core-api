@@ -21,7 +21,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --detectOpenHandles --config ./jest-e2e.config.ts"
+    "test:e2e": "jest --detectOpenHandles --config ./jest-e2e.config.ts",
+    "seed": "npm run build && node -r tsconfig-paths/register dist/src/database/seed.js",
+    "seed:dev": "ts-node --transpile-only --skip-project -r tsconfig-paths/register src/database/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.600.0",
@@ -71,6 +73,7 @@
   "devDependencies": {
     "@commitlint/cli": "17.8.0",
     "@commitlint/config-conventional": "17.8.0",
+    "@faker-js/faker": "^8.3.1",
     "@nestjs/cli": "9.5.0",
     "@nestjs/schematics": "9.0.4",
     "@nestjs/testing": "10.0.5",
