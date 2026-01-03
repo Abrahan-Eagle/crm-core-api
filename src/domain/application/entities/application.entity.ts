@@ -27,7 +27,7 @@ import { ApplicationReferral } from './application-referral.entity';
 import { BankNotification, NOTIFICATION_STATUS, REJECT_REASONS } from './bank-notification.entity';
 import { DraftApplication } from './draft';
 import { FilledApplicationDocument } from './filled-application-document.entity';
-import { Offer, UpdateOfferParams } from './offer.entity';
+import { Offer, OFFER_STATUS, UpdateOfferParams } from './offer.entity';
 
 const FILLED_APPLICATIONS_MIN_LENGTH = 1;
 const FILLED_APPLICATIONS_MAX_LENGTH = 1;
@@ -482,8 +482,33 @@ export class Application extends AggregateRoot {
       )
       .flatMap(() => Result.ok())
       .onSuccess(() => {
-        if (this._status === APPLICATION_STATUS.SENT) {
-          this._status = APPLICATION_STATUS.REPLIED;
+        // Verificar si hay alguna notificación con oferta aceptada
+        const hasAcceptedOffer = this._notifications.some(
+          (notification) => notification.status === NOTIFICATION_STATUS.ACCEPTED,
+        );
+
+        if (hasAcceptedOffer) {
+          this._status = APPLICATION_STATUS.OFFER_ACCEPTED;
+        } else {
+          // Verificar si hay ofertas pendientes (no ON_HOLD) en todas las notificaciones
+          const hasPendingOffers = this._notifications.some((notification) =>
+            notification.offers.some((offer) => offer.status !== OFFER_STATUS.ON_HOLD),
+          );
+
+          if (!hasPendingOffers) {
+            // Si no hay ofertas pendientes, devolver al estado correcto
+            // Si el estado actual es SENT, cambiar a REPLIED
+            // Si el estado actual es OFFERED, cambiar a REPLIED
+            if (
+              this._status === APPLICATION_STATUS.SENT ||
+              this._status === APPLICATION_STATUS.OFFERED
+            ) {
+              this._status = APPLICATION_STATUS.REPLIED;
+            }
+          } else {
+            // Si hay ofertas pendientes, mantener estado OFFERED
+            this._status = APPLICATION_STATUS.OFFERED;
+          }
         }
         this._updatedAt = new Date();
       });
@@ -547,9 +572,37 @@ export class Application extends AggregateRoot {
     return this.getNotificationById(notificationId)
       .flatMap((notification) => notification.cancelOffer(offerId))
       .onSuccess(() => {
-        this._status = this._notifications.some((notification) => notification.status === NOTIFICATION_STATUS.ACCEPTED)
-          ? APPLICATION_STATUS.OFFER_ACCEPTED
-          : APPLICATION_STATUS.OFFERED;
+        // Verificar si hay alguna notificación con oferta aceptada
+        const hasAcceptedOffer = this._notifications.some(
+          (notification) => notification.status === NOTIFICATION_STATUS.ACCEPTED,
+        );
+
+        if (hasAcceptedOffer) {
+          this._status = APPLICATION_STATUS.OFFER_ACCEPTED;
+        } else {
+          // Verificar si hay ofertas pendientes (no ON_HOLD) en todas las notificaciones
+          const hasPendingOffers = this._notifications.some((notification) =>
+            notification.offers.some((offer) => offer.status !== OFFER_STATUS.ON_HOLD),
+          );
+
+          if (!hasPendingOffers) {
+            // Si no hay ofertas pendientes, devolver al estado anterior apropiado
+            // Si hay notificaciones con estado REPLIED o SENT, usar REPLIED
+            // Si todas están REJECTED o no hay notificaciones, usar SENT
+            const hasRepliedOrSentNotifications = this._notifications.some(
+              (notification) =>
+                notification.status === NOTIFICATION_STATUS.REPLIED ||
+                notification.status === NOTIFICATION_STATUS.SENT,
+            );
+
+            this._status = hasRepliedOrSentNotifications
+              ? APPLICATION_STATUS.REPLIED
+              : APPLICATION_STATUS.SENT;
+          } else {
+            // Si hay ofertas pendientes, mantener estado OFFERED
+            this._status = APPLICATION_STATUS.OFFERED;
+          }
+        }
         this._updatedAt = new Date();
       });
   }
