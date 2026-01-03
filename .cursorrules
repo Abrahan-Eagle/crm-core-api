@@ -657,3 +657,75 @@ Facilitar la gestión completa del proceso de préstamos comerciales, desde la g
 - CloudTalk (VoIP): Realiza llamadas telefónicas
 - Auth0: Sincroniza usuarios y permisos
 
+## Convenciones de Commits y Pull Requests
+
+### Conventional Commits
+
+Este proyecto sigue la especificación **Conventional Commits** para estructurar los mensajes de commit.
+
+#### Estructura
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+#### Tipos Principales
+- `feat`: Nueva funcionalidad (MINOR en SemVer)
+- `fix`: Corrección de bug (PATCH en SemVer)
+- `docs`: Cambios en documentación
+- `refactor`: Refactorización sin cambiar funcionalidad
+- `test`: Añadir o modificar tests
+- `build`: Cambios en build o dependencias
+- `chore`: Tareas de mantenimiento
+
+#### Scope (Opcional)
+Ejemplos: `application`, `contact`, `company`, `bank`, `commission`, `lead`, `auth`, `infra`, `domain`
+
+#### Breaking Changes
+Indicar con `!` después del tipo/scope o en footer:
+```
+feat(application)!: change status enum
+
+BREAKING CHANGE: Application status values have been updated
+```
+
+#### Ejemplos
+- `feat(application): add cancel offer functionality`
+- `fix(application): correct status update on offer cancellation`
+- `docs: add Conventional Commits guide to README`
+- `refactor(application): simplify status transition logic`
+- `test(application): add unit tests for cancelOffer`
+
+#### Pull Requests
+- Título debe seguir formato Conventional Commits
+- Descripción debe incluir: Qué, Por qué, Cómo, Testing, Breaking Changes (si aplica)
+- Checklist: código sigue convenciones, tests pasando, documentación actualizada, sin errores de linting
+
+### Reglas del Proyecto
+
+1. **Idioma**: Todo el código y comentarios en **inglés**
+2. **Clean Code**: Seguir principios de Clean Code (nombres descriptivos, funciones pequeñas, código autodocumentado, DRY)
+3. **Conventional Commits**: Usar para todos los commits (ver sección anterior)
+4. **No commits directos a main**: Todo debe pasar por Pull Requests con revisión y aprobación
+5. **Sugerencias**: Bienvenidas, pero en el momento adecuado (code reviews, planificación)
+
+### Patrones y Principios
+
+- **Result Pattern**: Manejo de errores funcional
+- **Clean Architecture**: Domain, Application, Infrastructure layers
+- **CQRS Pattern**: Commands (escritura) y Queries (lectura) separados
+- **SOLID Principles**: Aplicados en todo el código
+- **MongoDB Aggregations**: Para consultas complejas
+
+### Flujo de Trabajo
+
+1. Crear branch desde `main`: `git checkout -b feat/feature-name`
+2. Desarrollar siguiendo Clean Code
+3. Commits con Conventional Commits
+4. Push y crear PR
+5. Esperar code review y aprobación
+6. Merge a `main`
+

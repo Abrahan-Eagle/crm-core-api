@@ -17,6 +17,7 @@
 12. [Resumen Ejecutivo](#12-resumen-ejecutivo)
 13. [Análisis Profundo de Todos los Módulos](#13-análisis-profundo-de-todos-los-módulos)
 14. [Comunicación con Frontend](#14-comunicación-con-frontend)
+15. [Guía de Commits y Pull Requests](#15-guía-de-commits-y-pull-requests)
 
 ---
 
@@ -4721,6 +4722,296 @@ Para más detalles sobre:
 - **Flujos desde Perspectiva Frontend**: Ver [Frontend README - Sección 12: Flujos Completos](../crm-web-app/README.md#12-flujos-completos-de-procesos---trazabilidad-detallada)
 - **Análisis Profundo de Applications**: Ver [Frontend README - Sección 11: Análisis Profundo: Módulo Applications](../crm-web-app/README.md#11-análisis-profundo-módulo-applications)
 - **Signals y Estado Local**: Ver [Frontend README - Sección 4.3: Gestión de Estado](../crm-web-app/README.md#43-gestión-de-estado)
+
+---
+
+## 15. GUÍA DE COMMITS Y PULL REQUESTS
+
+### 15.1 Conventional Commits
+
+Este proyecto sigue la especificación **Conventional Commits** para estructurar los mensajes de commit de manera consistente y automatizable.
+
+#### Estructura del Mensaje de Commit
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+#### Tipos de Commit
+
+| Tipo | Descripción | Ejemplo |
+|------|-------------|---------|
+| `feat` | Nueva funcionalidad (correlaciona con MINOR en SemVer) | `feat(application): add cancel offer functionality` |
+| `fix` | Corrección de bug (correlaciona con PATCH en SemVer) | `fix(application): correct status update on offer cancellation` |
+| `docs` | Cambios en documentación | `docs: update README with commit guidelines` |
+| `style` | Cambios de formato (espacios, comas, etc.) que no afectan el código | `style: format code with prettier` |
+| `refactor` | Refactorización de código sin cambiar funcionalidad | `refactor(application): simplify status transition logic` |
+| `perf` | Mejoras de rendimiento | `perf(application): optimize database queries` |
+| `test` | Añadir o modificar tests | `test(application): add unit tests for cancelOffer` |
+| `build` | Cambios en sistema de build o dependencias | `build: update nestjs to 10.0.5` |
+| `ci` | Cambios en configuración de CI/CD | `ci: add github actions workflow` |
+| `chore` | Tareas de mantenimiento | `chore: update dependencies` |
+
+#### Scope (Opcional)
+
+El scope indica el módulo o área afectada. Ejemplos:
+- `application`: Módulo de aplicaciones
+- `contact`: Módulo de contactos
+- `company`: Módulo de empresas
+- `bank`: Módulo de bancos
+- `commission`: Módulo de comisiones
+- `lead`: Módulo de leads
+- `auth`: Autenticación/autorización
+- `infra`: Infraestructura
+- `domain`: Capa de dominio
+
+#### Breaking Changes
+
+Los cambios que rompen la compatibilidad deben indicarse:
+
+**Opción 1: En el footer**
+```
+feat(application): add new status field
+
+BREAKING CHANGE: Application status enum now includes REPLIED status
+```
+
+**Opción 2: Con `!` después del tipo/scope**
+```
+feat(application)!: add new status field
+```
+
+**Opción 3: Ambos**
+```
+feat(application)!: add new status field
+
+BREAKING CHANGE: Application status enum now includes REPLIED status
+```
+
+#### Ejemplos de Commits
+
+**Nueva funcionalidad:**
+```
+feat(application): add cancel offer functionality
+
+- Add cancelOffer method to Application entity
+- Update status logic when offer is canceled
+- Add unit tests for cancelOffer scenarios
+```
+
+**Corrección de bug:**
+```
+fix(application): correct status update on offer cancellation
+
+When canceling an offer, the application status was not correctly
+updated if no other pending offers existed. Now it correctly changes
+to REPLIED or SENT based on notification statuses.
+```
+
+**Documentación:**
+```
+docs: add Conventional Commits guide to README
+```
+
+**Refactorización:**
+```
+refactor(application): simplify status transition logic
+
+Extract status transition logic into separate methods for better
+readability and maintainability.
+```
+
+**Breaking change:**
+```
+feat(application)!: change status enum values
+
+BREAKING CHANGE: Application status values have been renamed:
+- READY_TO_SEND -> READY_TO_SEND (unchanged)
+- SENT -> SENT (unchanged)
+- OFFERED -> OFFERED (unchanged)
+- OFFER_ACCEPTED -> OFFER_ACCEPTED (unchanged)
+- COMPLETED -> COMPLETED (unchanged)
+
+Migration: Update any code that references the old status values.
+```
+
+**Con scope:**
+```
+fix(application): prevent duplicate applications for same period
+```
+
+**Sin scope:**
+```
+fix: resolve memory leak in event handlers
+```
+
+### 15.2 Pull Requests
+
+#### Estructura del PR
+
+1. **Título**: Debe seguir el formato de Conventional Commits
+   - Ejemplo: `feat(application): add cancel offer functionality`
+
+2. **Descripción**:
+   - **Qué**: Descripción clara de los cambios
+   - **Por qué**: Razón del cambio (problema que resuelve)
+   - **Cómo**: Resumen de la implementación
+   - **Testing**: Cómo se probó
+   - **Breaking Changes**: Si aplica, documentar claramente
+
+3. **Ejemplo de Descripción de PR**:
+   ```markdown
+   ## Descripción
+   
+   Implementa la funcionalidad para cancelar ofertas en aplicaciones.
+   
+   ## Problema
+   
+   Cuando se cancelaba una oferta, el estado de la aplicación no se actualizaba
+   correctamente si no había otras ofertas pendientes, causando confusión.
+   
+   ## Solución
+   
+   - Agregado método `cancelOffer` en `Application` entity
+   - Lógica actualizada para verificar ofertas pendientes
+   - Estado cambia a REPLIED o SENT según corresponda
+   
+   ## Testing
+   
+   - ✅ Unit tests agregados para `cancelOffer`
+   - ✅ Tests cubren todos los escenarios (con/sin ofertas pendientes)
+   - ✅ Verificado manualmente en UI
+   
+   ## Breaking Changes
+   
+   Ninguno
+   ```
+
+#### Checklist para PRs
+
+- [ ] Código sigue las convenciones del proyecto
+- [ ] Tests agregados/actualizados y pasando
+- [ ] Documentación actualizada (si aplica)
+- [ ] Sin errores de linting
+- [ ] Commits siguen Conventional Commits
+- [ ] PR tiene descripción clara
+- [ ] Breaking changes documentados (si aplica)
+
+### 15.3 Buenas Prácticas
+
+1. **Commits Atómicos**: Un commit debe representar un cambio lógico completo
+   - ✅ Bueno: `fix(application): correct status update on offer cancellation`
+   - ❌ Malo: `fix: various bug fixes`
+
+2. **Mensajes Descriptivos**: El mensaje debe ser claro y específico
+   - ✅ Bueno: `feat(application): add validation for minimum loan amount`
+   - ❌ Malo: `feat: add validation`
+
+3. **Usar Imperativo**: Los mensajes deben estar en modo imperativo
+   - ✅ Bueno: `fix: correct status update`
+   - ❌ Malo: `fix: corrected status update` o `fix: correcting status update`
+
+4. **Body para Cambios Complejos**: Usar el body para explicar el "qué" y "por qué"
+   ```
+   fix(application): correct status update on offer cancellation
+   
+   When canceling an offer, the application status was not correctly
+   updated if no other pending offers existed. This caused confusion
+   as the application appeared to have an active offer when it didn't.
+   
+   The fix checks for pending offers across all notifications and
+   updates the status to REPLIED or SENT accordingly.
+   ```
+
+5. **Referencias**: Incluir referencias a issues/tickets si aplica
+   ```
+   fix(application): correct status update on offer cancellation
+   
+   Fixes #123
+   ```
+
+### 15.4 Automatización
+
+Los mensajes de commit en formato Conventional Commits permiten:
+- **Generación automática de CHANGELOG**
+- **Versionado semántico automático** (SemVer)
+- **Triggering de builds y publicaciones**
+- **Filtrado de commits por tipo**
+
+### 15.5 Reglas del Proyecto
+
+#### Reglas de Desarrollo
+
+1. **Idioma del Código**: Todo el código y comentarios se realizan en **inglés**
+   - ✅ Variables, funciones, clases en inglés
+   - ✅ Comentarios en inglés
+   - ✅ Mensajes de commit en inglés
+   - ✅ Documentación de código en inglés
+
+2. **Clean Code**: Seguimos principios de **Clean Code**
+   - Nombres descriptivos y significativos
+   - Funciones pequeñas y con una sola responsabilidad
+   - Código autodocumentado
+   - Evitar código duplicado (DRY)
+   - Mantener funciones y clases pequeñas
+
+3. **Conventional Commits**: Usamos **Conventional Commits** para todos los commits
+   - Ver sección [15.1 Conventional Commits](#151-conventional-commits) para detalles
+
+4. **Pull Requests Obligatorios**: **No se hacen commits directos a `main`**
+   - Todo el código debe pasar por Pull Requests
+   - Los PRs requieren revisión y aprobación antes de merge
+   - Crear branch desde `main` para cada feature/fix
+   - El PR debe seguir Conventional Commits en el título
+
+5. **Sugerencias**: Las sugerencias son bienvenidas, pero deben hacerse en el momento adecuado
+   - Durante code reviews
+   - En reuniones de planificación
+   - A través de canales de comunicación establecidos
+
+#### Patrones y Principios Aplicados
+
+Este proyecto implementa los siguientes patrones y principios:
+
+- **Result Pattern**: Manejo de errores funcional sin excepciones
+- **Clean Architecture**: Separación en capas (Domain, Application, Infrastructure)
+- **CQRS Pattern**: Separación de Commands (escritura) y Queries (lectura)
+- **SOLID Principles**: Principios de diseño orientado a objetos
+  - Single Responsibility Principle
+  - Open/Closed Principle
+  - Liskov Substitution Principle
+  - Interface Segregation Principle
+  - Dependency Inversion Principle
+- **MongoDB Aggregations**: Uso de agregaciones para consultas complejas
+
+#### Flujo de Trabajo
+
+1. **Crear Branch**: Desde `main`, crear branch descriptivo
+   ```bash
+   git checkout -b feat/application-cancel-offer
+   # o
+   git checkout -b fix/application-status-update
+   ```
+
+2. **Desarrollar**: Escribir código siguiendo Clean Code y convenciones
+
+3. **Commits**: Hacer commits siguiendo Conventional Commits
+   ```bash
+   git commit -m "feat(application): add cancel offer functionality"
+   ```
+
+4. **Push y PR**: Push a origin y crear Pull Request
+   ```bash
+   git push origin feat/application-cancel-offer
+   ```
+
+5. **Code Review**: Esperar revisión y aprobación
+
+6. **Merge**: Una vez aprobado, el PR se mergea a `main`
 
 ---
 
